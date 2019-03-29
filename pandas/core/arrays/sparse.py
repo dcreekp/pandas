@@ -1,18 +1,17 @@
 """
 SparseArray data structure
 """
-from __future__ import division
-
 import numbers
 import operator
 import re
+from typing import Any, Callable, Union
 import warnings
 
 import numpy as np
 
 from pandas._libs import index as libindex, lib
 import pandas._libs.sparse as splib
-from pandas._libs.sparse import BlockIndex, IntIndex
+from pandas._libs.sparse import BlockIndex, IntIndex, SparseIndex
 from pandas._libs.tslibs import NaT
 import pandas.compat as compat
 from pandas.compat.numpy import function as nv
@@ -111,7 +110,7 @@ class SparseDtype(ExtensionDtype):
     def __eq__(self, other):
         # We have to override __eq__ to handle NA values in _metadata.
         # The base class does simple == checks, which fail for NA.
-        if isinstance(other, compat.string_types):
+        if isinstance(other, str):
             try:
                 other = self.construct_from_string(other)
             except TypeError:
@@ -278,7 +277,7 @@ class SparseDtype(ExtensionDtype):
     @classmethod
     def is_dtype(cls, dtype):
         dtype = getattr(dtype, 'dtype', dtype)
-        if (isinstance(dtype, compat.string_types) and
+        if (isinstance(dtype, str) and
                 dtype.startswith("Sparse")):
             sub_type, _ = cls._parse_subtype(dtype)
             dtype = np.dtype(sub_type)
@@ -359,7 +358,7 @@ class SparseDtype(ExtensionDtype):
         >>> dtype._subtype_with_str
         str
         """
-        if isinstance(self.fill_value, compat.string_types):
+        if isinstance(self.fill_value, str):
             return type(self.fill_value)
         return self.subtype
 
@@ -372,7 +371,7 @@ _sparray_doc_kwargs = dict(klass='SparseArray')
 
 
 def _get_fill(arr):
-    # type: (SparseArray) -> ndarray
+    # type: (SparseArray) -> np.ndarray
     """
     Create a 0-dim ndarray containing the fill value
 
@@ -585,7 +584,7 @@ class SparseArray(PandasObject, ExtensionArray, ExtensionOpsMixin):
             data = data.sp_values
 
         # Handle use-provided dtype
-        if isinstance(dtype, compat.string_types):
+        if isinstance(dtype, str):
             # Two options: dtype='int', regular numpy dtype
             # or dtype='Sparse[int]', a sparse dtype
             try:
@@ -1847,9 +1846,7 @@ def make_sparse(arr, kind='block', fill_value=None, dtype=None, copy=False):
     if isna(fill_value):
         mask = notna(arr)
     else:
-        # For str arrays in NumPy 1.12.0, operator!= below isn't
-        # element-wise but just returns False if fill_value is not str,
-        # so cast to object comparison to be safe
+        # cast to object comparison to be safe
         if is_string_dtype(arr):
             arr = arr.astype(object)
 

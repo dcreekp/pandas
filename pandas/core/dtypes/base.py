@@ -1,11 +1,11 @@
 """Extend pandas with custom array types"""
+from typing import List, Optional, Type
+
 import numpy as np
 
 from pandas.errors import AbstractMethodError
 
 from pandas.core.dtypes.generic import ABCDataFrame, ABCIndexClass, ABCSeries
-
-from pandas import compat
 
 
 class _DtypeOpsMixin(object):
@@ -44,7 +44,7 @@ class _DtypeOpsMixin(object):
         -------
         bool
         """
-        if isinstance(other, compat.string_types):
+        if isinstance(other, str):
             try:
                 other = self.construct_from_string(other)
             except TypeError:
@@ -211,7 +211,7 @@ class ExtensionDtype(_DtypeOpsMixin):
 
     @property
     def type(self):
-        # type: () -> type
+        # type: () -> Type
         """
         The scalar type for the array, e.g. ``int``
 
